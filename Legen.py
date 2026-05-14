@@ -24,69 +24,98 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# -----------------------------
-# ΡΥΘΜΙΣΕΙΣ
-# -----------------------------
-TICKET_CATEGORY_NAME = "TICKETS"   # Η κατηγορία όπου θα ανοίγουν τα tickets
-STAFF_ROLE_NAME = "Support"        # Ρόλος που θα βλέπει τα tickets
+TICKET_CATEGORY_NAME = "TICKETS"
+STAFF_ROLE_NAME = "Support"
+
 
 # -----------------------------
-# ΕΛΕΓΧΟΣ ΑΝ Ο ΧΡΗΣΤΗΣ ΕΧΕΙ ΗΔΗ TICKET
+# BUTTON VIEW
 # -----------------------------
-def user_has_ticket(guild, user):
-    for channel in guild.channels:
-        if channel.name == f"ticket-{user.id}":
-            return True
-    return False
+class TicketButton(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="📩 Άνοιγμα Ticket", style=discord.ButtonStyle.green)
+    async def open_ticket(self, interaction: discord.Interaction, button: Button):
+
+        user = interaction.user
+        guild = interaction.guild
+
+        # Έλεγχος αν υπάρχει ήδη ticket
+        for channel in guild.channels:
+            if channel.name == f"ticket-{user.id}":
+                await interaction.response.send_message(
+                    "❗ Έχεις ήδη ανοιχτό ticket.",
+                    ephemeral=True
+                )
+                return
+
+        # Βρίσκουμε/δημιουργούμε κατηγορία
+        category = discord.utils.get(guild.categories, name=TICKET_CATEGORY_NAME)
+        if category is None:
+            category = await guild.create_category(TICKET_CATEGORY_NAME)
+
+        staff_role = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            user: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+            staff_role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
+        }
+
+        # Δημιουργία channel με το όνομα του χρήστη
+        channel = await guild.create_text_channel(
+            name=f"ticket-{user.name}",
+            category=category,
+            overwrites=overwrites
+        )
+
+        # Embed με το όνομα του χρήστη
+        embed = discord.Embed(
+            title=f"🎫 Ticket από {user.name}",
+            description=(
+                f"{user.mention}, γράψε εδώ το μήνυμά σου.\n"
+                "Μπορείς να ανεβάσεις **όποια εικόνα θέλεις** και να γράψεις **ό,τι θέλεις**."
+            ),
+            color=0x00aaff
+        )
+
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+
+        await channel.send(f"👋 Καλωσήρθες {user.mention} στο ticket σου!")
+        await channel.send(embed=embed)
+
+        await interaction.response.send_message(
+            "✅ Το ticket σου δημιουργήθηκε!",
+            ephemeral=True
+        )
+
 
 # -----------------------------
-# ΔΗΜΙΟΥΡΓΙΑ TICKET
+# PANEL COMMAND
 # -----------------------------
 @bot.command()
-async def ticket(ctx):
-    user = ctx.author
-    guild = ctx.guild
+async def panel(ctx):
 
-    # Έλεγχος αν έχει ήδη ticket
-    if user_has_ticket(guild, user):
-        await ctx.send("❗ Έχεις ήδη ανοιχτό ticket.")
-        return
-
-    # Βρίσκουμε/δημιουργούμε την κατηγορία
-    category = discord.utils.get(guild.categories, name=TICKET_CATEGORY_NAME)
-    if category is None:
-        category = await guild.create_category(TICKET_CATEGORY_NAME)
-
-    # Βρίσκουμε το staff role
-    staff_role = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
-
-    # Δημιουργία private channel
-    overwrites = {
-        guild.default_role: discord.PermissionOverwrite(read_messages=False),
-        user: discord.PermissionOverwrite(read_messages=True, send_messages=True),
-        staff_role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
-    }
-
-    channel = await guild.create_text_channel(
-        name=f"ticket-{user.id}",
-        category=category,
-        overwrites=overwrites
-    )
-
-    # Μήνυμα μέσα στο ticket
     embed = discord.Embed(
-        title="🎫 Ticket Created",
-        description="Γράψε εδώ το μήνυμα που θέλεις.\nΜπορείς να ανεβάσεις **όποια εικόνα θέλεις**.",
-        color=0x00aaff
+        title="🎧 Ticket Support Panel",
+        description=(
+            "Καλωσήρθες στο σύστημα υποστήριξης!\n\n"
+            "📩 Πάτα το κουμπί από κάτω για να ανοίξεις ticket.\n"
+            "📸 Μπορείς να βάλεις **όποια εικόνα θέλεις**.\n"
+            "📝 Μπορείς να γράψεις **ό,τι κείμενο θέλεις**.\n"
+        ),
+        color=0xff8800
     )
 
-    await channel.send(f"{user.mention} καλωσήρθες στο ticket σου!")
-    await channel.send(embed=embed)
+    embed.set_thumbnail(url="https://i.imgur.com/yourimage.png")
+    embed.set_image(url="https://i.imgur.com/yourbanner.png")
 
-    await ctx.send("✅ Το ticket σου δημιουργήθηκε!")
+    await ctx.send(embed=embed, view=TicketButton())
+
 
 # -----------------------------
-# ΚΛΕΙΣΙΜΟ TICKET
+# CLOSE COMMAND
 # -----------------------------
 @bot.command()
 async def close(ctx):
