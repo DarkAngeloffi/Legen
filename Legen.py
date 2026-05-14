@@ -1,5 +1,6 @@
+import os
 import discord
-import flask
+from flask import Flask
 from discord.ext import commands
 
 app = Flask('')
