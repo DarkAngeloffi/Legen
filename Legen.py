@@ -2,6 +2,21 @@ import discord
 import flask
 from discord.ext import commands
 
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "OK"
+
+def run():
+    app.run(host='0.0.0.0', port=10000)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+    
+TOKEN = os.getenv("TOKEN")
+
 intents = discord.Intents.default()
 intents.members = True
 
@@ -82,4 +97,6 @@ async def close(ctx):
 # -----------------------------
 # RUN BOT
 # -----------------------------
-bot.run("TOKEN")
+if __name__ == "__main__":
+    keep_alive()
+    bot.run(TOKEN)
