@@ -43,7 +43,7 @@ class TicketButton(View):
 
         # Έλεγχος αν υπάρχει ήδη ticket
         for channel in guild.channels:
-            if channel.name == f"ticket-{user.id}":
+            if channel.name == f"ticket-{user.name.lower()}":
                 await interaction.response.send_message(
                     "❗ Έχεις ήδη ανοιχτό ticket.",
                     ephemeral=True
@@ -65,7 +65,7 @@ class TicketButton(View):
 
         # Δημιουργία channel με το όνομα του χρήστη
         channel = await guild.create_text_channel(
-            name=f"ticket-{user.name}",
+            name=f"ticket-{user.name.lower()}",
             category=category,
             overwrites=overwrites
         )
@@ -80,7 +80,8 @@ class TicketButton(View):
             color=0x00aaff
         )
 
-        embed.set_thumbnail(url=user.avatar.url if user.avatar else discord.Embed.Empty)
+        if user.avatar:
+            embed.set_thumbnail(url=user.avatar.url)
 
         await channel.send(f"👋 Καλωσήρθες {user.mention} στο ticket σου!")
         await channel.send(embed=embed)
@@ -108,23 +109,9 @@ async def panel(ctx):
         color=0xff8800
     )
 
-    embed.set_thumbnail(url="https://i.imgur.com/yourimage.png")
-    embed.set_image(url="https://i.imgur.com/yourbanner.png")
+    # Βάλε εδώ όποια εικόνα θέλεις
+    embed.set_thumbnail
 
-    await ctx.send(embed=embed, view=TicketButton())
-
-
-# -----------------------------
-# CLOSE COMMAND
-# -----------------------------
-@bot.command()
-async def close(ctx):
-    if "ticket-" not in ctx.channel.name:
-        await ctx.send("❗ Αυτή η εντολή χρησιμοποιείται μόνο μέσα σε ticket.")
-        return
-
-    await ctx.send("🔒 Το ticket θα κλείσει σε 3 δευτερόλεπτα...")
-    await ctx.channel.delete()
 # -----------------------------
 # RUN BOT
 # -----------------------------
