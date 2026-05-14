@@ -82,4 +82,4 @@ async def close(ctx):
 # -----------------------------
 # RUN BOT
 # -----------------------------
-bot.run("TOKEN_HERE")
+bot.run("TOKEN")
