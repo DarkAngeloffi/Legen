@@ -31,7 +31,6 @@ STAFF_ROLE_NAME = "Support"
 # -----------------------------
 # BUTTON VIEW
 # -----------------------------
-class TicketButton:
     def __init__(self):
         super().__init__(timeout=None)
 
