@@ -273,7 +273,7 @@ async def help(ctx):
 # =========================
 # RUN BOT
 # =========================
-if name=="main":
+if name=="Legen":
  keep_alive()
 bot.run(TOKEN)
 
