@@ -234,8 +234,6 @@ async def applications(ctx):
 # HELP COMMAND
 # =========================
 
-bot.remove_command("help")
-
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(
@@ -271,6 +269,13 @@ async def help(ctx):
 
     await ctx.send(embed=embed)
 
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+    for v in [TicketSelectView(), ApplicationsView(), HelpView()]:
+    await bot.change_presence(activity=discord.Game(name="Legen Roleplay"))
+    print("Bot fully online!")
+    
 # =========================
 # RUN BOT
 # =========================
