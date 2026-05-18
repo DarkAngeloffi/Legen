@@ -1,4 +1,4 @@
-import OS
+import os
 import discord
 from flask import Flask
 from threading import Thread
