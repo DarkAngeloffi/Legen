@@ -274,7 +274,7 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
     for v in [TicketSelectView(), ApplicationsView(), HelpView()]:
     await bot.change_presence(activity=discord.Game(name="Toxic Reborn Roleplay"))
-    print("Bot fully online!")
+print("Bot fully online!")
     
 # =========================
 # RUN BOT
