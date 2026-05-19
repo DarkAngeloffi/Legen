@@ -273,8 +273,8 @@ async def help(ctx):
 async def on_ready():
     print(f"Logged in as {bot.user}")
     for v in [TicketView()]:
-        bot.add_view(v)
-    await bot.change_presence(activity=discord.Game(name="Toxic Reborn Roleplay"))
+     bot.add_view(v)
+     await bot.change_presence(activity=discord.Game(name="Toxic Reborn Roleplay"))
     print("Bot fully online!")
     
 # =========================
