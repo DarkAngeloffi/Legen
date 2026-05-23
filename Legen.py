@@ -172,8 +172,7 @@ async def ticket(ctx):
         color=0x2b2d31
     )
 
-    embed.set_image(url=TICKET_BANNER)
-    embed.set_thumbnail(url=LOGO_IMAGE)
+    embed.set_image(https://imgur.com/undefined)
 
     await ctx.send(embed=embed, view=TicketView())
 
@@ -198,8 +197,6 @@ async def say2(ctx, *, message):
         description=message,
         color=0xff00ff
     )
-
-embed.set_thumbnail(https://imgur.com/Z21zEIc)
     
 await ctx.send(embed=embed)
 
