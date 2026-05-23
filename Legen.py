@@ -94,8 +94,6 @@ class TicketSelect(Select):
 
         support_role = discord.utils.get(guild.roles, name=SUPPORT_ROLE_NAME)
 
-        )
-
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False),
             user: discord.PermissionOverwrite(view_channel=True, send_messages=True),
@@ -161,7 +159,7 @@ class TicketView(View):
         self.add_item(TicketSelect())
 
 
-@bot.command()
+bot.command()
 async def ticket(ctx):
     embed = discord.Embed(
         title="Quantum® Tickets",
