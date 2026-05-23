@@ -190,7 +190,17 @@ async def say(ctx, *, message):
 # SAY2 EMBED COMMAND
 # =========================
 
-bot.command()
+@bot.command()
+async def say2(ctx, *, message):
+    await ctx.message.delete()
+
+    embed = discord.Embed(
+        description=message,
+        color=0xff00ff
+    )
+
+    embed.set_thumbnail(https://imgur.com/Z21zEIc)
+    
 await ctx.send(embed=embed)
 
 # =========================
