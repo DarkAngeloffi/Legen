@@ -172,8 +172,6 @@ async def ticket(ctx):
         color=0x2b2d31
     )
 
-    embed.set_image(https://imgur.com/uJtMqDG)
-
     await ctx.send(embed=embed, view=TicketView())
 
 # =========================
