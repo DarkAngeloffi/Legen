@@ -43,9 +43,76 @@ LOGO_IMAGE = "https://imgur.com/a/KtJM0O9#eynLN19"
 async def on_ready():
     print(f"Logged in as {bot.user}")
 
-@bot.event
+# =========================
+# TICKET SYSTEM
+# =========================
+
+class TicketSelect(Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(
+                label="Support",
+                description="Άνοιγμα support ticket",
+                emoji="🎫"
+            ),
+            discord.SelectOption(
+                label="Report",
+                description="Κάνε report κάποιον",
+                emoji="⚠️"
+            ),
+            discord.SelectOption(
+                label="Buy",
+                description="Αγορές / Market",
+                emoji="💎"
+            )
+        ]
+
+        super().__init__(
+            placeholder="Διάλεξε κατηγορία για το ticket σου.",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        user = interaction.user
+
+        existing = discord.utils.get(guild.text_channels, name=f"ticket-{user.name.lower()}")
+
+        if existing:
+            await interaction.response.send_message(
+                "Έχεις ήδη ανοιχτό ticket.",
+                ephemeral=True
+            )
+            return
+
+        category = discord.utils.get(guild.categories, name=TICKET_CATEGORY_NAME)
+
+        if category is None:
+            category = await guild.create_category(TICKET_CATEGORY_NAME)
+
+        support_role = discord.utils.get(guild.roles, name=SUPPORT_ROLE_NAME)
+
+        )
+
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            user: discord.PermissionOverwrite(view_channel=True, send_messages=True),
+        }
+
+        if support_role:
+            overwrites[support_role] = discord.PermissionOverwrite(
+                view_channel=True,
+                send_messages=True
+            )
+
+        channel = await guild.create_text_channel(
+            name=f"ticket-{user.name}",
+            category=category,
             overwrites=overwrites
         )
+
 
         embed = discord.Embed(
             title="👋 — Welcome to Ticket Support",
