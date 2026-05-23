@@ -20,6 +20,9 @@ def keep_alive():
 
 TOKEN = os.getenv("TOKEN")
 intents = discord.Intents.default()
+intents.message_content = True
+intents.guilds = True
+intents.members = True
 # =========================
 # APPLICATIONS COMMAND
 # =========================
