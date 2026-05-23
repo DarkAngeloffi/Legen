@@ -196,7 +196,7 @@ async def say2(ctx, *, message):
         color=0xff00ff
     )
     
- await ctx.send(embed=embed)
+    await ctx.send(embed=embed)
 
 # =========================
 # APPLICATIONS COMMAND
