@@ -191,7 +191,7 @@ async def say(ctx, *, message):
 # =========================
 
 bot.command()
-    await ctx.send(embed=embed)
+await ctx.send(embed=embed)
 
 # =========================
 # APPLICATIONS COMMAND
