@@ -181,7 +181,7 @@ async def ticket(ctx):
 # SAY COMMAND
 # =========================
 
-@bot.command()
+bot.command()
 async def say(ctx, *, message):
     await ctx.message.delete()
     await ctx.send(message)
@@ -190,7 +190,7 @@ async def say(ctx, *, message):
 # SAY2 EMBED COMMAND
 # =========================
 
-@bot.command()
+bot.command()
     await ctx.send(embed=embed)
 
 # =========================
