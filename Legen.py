@@ -162,7 +162,7 @@ class TicketView(View):
         self.add_item(TicketSelect())
 
 
-@bot.command()
+bot.command()
 async def ticket(ctx):
     embed = discord.Embed(
         title="Most Wanted® Tickets",
@@ -184,7 +184,7 @@ async def ticket(ctx):
 # SAY COMMAND
 # =========================
 
-@bot.command()
+bot.command()
 async def say(ctx, *, message):
     await ctx.message.delete()
     await ctx.send(message)
@@ -193,7 +193,7 @@ async def say(ctx, *, message):
 # SAY2 EMBED COMMAND
 # =========================
 
-@bot.command()
+bot.command()
 async def say2(ctx, *, message):
     await ctx.message.delete()
 
@@ -211,7 +211,7 @@ async def say2(ctx, *, message):
 # APPLICATIONS COMMAND
 # =========================
 
-@bot.command()
+bot.command()
 async def applications(ctx):
     embed = discord.Embed(
         title="💎 Κάνε μια αίτηση σήμερα!",
@@ -234,7 +234,7 @@ async def applications(ctx):
 # HELP COMMAND
 # =========================
 
-@bot.command()
+bot.command()
 async def help(ctx):
     embed = discord.Embed(
         title="📖 Help Commands",
