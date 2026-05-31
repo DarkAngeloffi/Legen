@@ -33,9 +33,9 @@ STAFF_ROLE_NAME = "Support"
 # CONFIG — Εσύ αλλάζεις ό,τι θέλεις εδώ
 # ---------------------------------------------------
 
-BANNER_URL = "https://imgur.com/a/QW5bEDV#uJtMqDG"   # Βάλε όποιο banner θες
+BANNER_URL = "https://imgur.com/a/MmRku1d"   # Βάλε όποιο banner θες
 PANEL_TEXT = """
-**Welcome to Summer Test Roleplay**
+Welcome to Summer Test Roleplay
 
 Για την άμεση εξυπηρέτηση σας μπορείτε να ανοίξετε ένα ticket ώστε να μιλήσετε με κάποιον ανώτερο και να λύσετε το πρόβλημα σας.
 """
@@ -112,10 +112,11 @@ class TicketPanel(View):
 
 @bot.command()
 async def panel(ctx):
-    embed = discord.Embed(description=PANEL_TEXT)
-    embed.set_image(url=BANNER_URL)
+    # Στέλνουμε την εικόνα σαν attachment
+    await ctx.send(BANNER_URL)
 
-    await ctx.send(embed=embed, view=TicketPanel())
+    # Στέλνουμε το κείμενο + container
+    await ctx.send(PANEL_TEXT, view=TicketPanel())
 
 
 @bot.command()
@@ -126,7 +127,7 @@ async def close(ctx):
 
     await ctx.send("🔒 Το ticket θα κλείσει σε 3 δευτερόλεπτα...")
     await ctx.channel.delete()
-   
+
 # =========================
 # RUN BOT
 # =========================
