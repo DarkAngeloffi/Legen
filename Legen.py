@@ -171,7 +171,7 @@ class TicketView(View):
 async def ticket(ctx):
 
     embed = discord.Embed(
-        title="🌊 Welcome To Summer Melody Roleplay",
+        title="🌊 Welcome To Summer test Roleplay",
         description=(
             "Για να επικοινωνήσεις με το staff,\n"
             "επέλεξε κατηγορία από το dropdown."
@@ -181,7 +181,7 @@ async def ticket(ctx):
 
     # ΒΑΛΕ ΤΗ ΔΙΚΗ ΣΟΥ ΕΙΚΟΝΑ
     embed.set_image(
-        url="https://YOUR-BANNER-LINK.png"
+        url="https://imgur.com/a/MmRku1d"
     )
 
     await ctx.send(
