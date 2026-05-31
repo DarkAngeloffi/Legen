@@ -29,36 +29,53 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 TICKET_CATEGORY_NAME = "TICKETS"
 STAFF_ROLE_NAME = "Support"
 
+# ---------------------------------------------------
+# CONFIG — Εσύ αλλάζεις ό,τι θέλεις εδώ
+# ---------------------------------------------------
 
-# -----------------------------
-# SELECT MENU VIEW
-# -----------------------------
-class TicketSelect(View):
+BANNER_URL = "https://imgur.com/a/QW5bEDV#uJtMqDG"   # Βάλε όποιο banner θες
+PANEL_TEXT = """
+**Welcome to Summer Test Roleplay**
+
+Για την άμεση εξυπηρέτηση σας μπορείτε να ανοίξετε ένα ticket ώστε να μιλήσετε με κάποιον ανώτερο και να λύσετε το πρόβλημα σας.
+"""
+
+CATEGORIES = [
+    ("Support", "Υποστήριξη για προβλήματα", "🛠️"),
+    ("Report", "Αναφορά χρήστη ή προβλήματος", "⚠️"),
+    ("Appeal", "Αίτηση unban/unmute", "📨"),
+]
+# ---------------------------------------------------
+
+
+class TicketPanel(View):
     def __init__(self):
         super().__init__(timeout=None)
 
         options = [
-            discord.SelectOption(label="Support", description="Άνοιγμα ticket για υποστήριξη", emoji="🛠️"),
-            discord.SelectOption(label="Report", description="Αναφορά χρήστη ή προβλήματος", emoji="⚠️"),
-            discord.SelectOption(label="Appeal", description="Αίτηση unban/unmute", emoji="📨"),
+            discord.SelectOption(
+                label=name,
+                description=desc,
+                emoji=emoji
+            )
+            for name, desc, emoji in CATEGORIES
         ]
 
-        self.add_item(
-            Select(
-                placeholder="Επίλεξε κατηγορία ticket...",
-                min_values=1,
-                max_values=1,
-                options=options,
-                custom_id="ticket_select"
-            )
+        self.select = Select(
+            placeholder="Choose a category",
+            min_values=1,
+            max_values=1,
+            options=options,
+            custom_id="ticket_select"
         )
 
-    @discord.ui.select(custom_id="ticket_select")
-    async def select_callback(self, interaction: discord.Interaction, select: Select):
+        self.select.callback = self.select_callback
+        self.add_item(self.select)
 
-        user = interaction.user
+    async def select_callback(self, interaction: discord.Interaction):
         guild = interaction.guild
-        choice = select.values[0]
+        user = interaction.user
+        choice = self.select.values[0]
 
         # Έλεγχος αν υπάρχει ήδη ticket
         for channel in guild.channels:
@@ -69,17 +86,14 @@ class TicketSelect(View):
                 )
                 return
 
-        # Βρίσκουμε/δημιουργούμε κατηγορία
-        category = discord.utils.get(guild.categories, name=TICKET_CATEGORY_NAME)
+        # Δημιουργία κατηγορίας αν δεν υπάρχει
+        category = discord.utils.get(guild.categories, name="TICKETS")
         if category is None:
-            category = await guild.create_category(TICKET_CATEGORY_NAME)
-
-        staff_role = discord.utils.get(guild.roles, name=STAFF_ROLE_NAME)
+            category = await guild.create_category("TICKETS")
 
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
             user: discord.PermissionOverwrite(read_messages=True, send_messages=True),
-            staff_role: discord.PermissionOverwrite(read_messages=True, send_messages=True)
         }
 
         channel = await guild.create_text_channel(
@@ -88,7 +102,7 @@ class TicketSelect(View):
             overwrites=overwrites
         )
 
-        await channel.send(f"{user.mention} άνοιξες ticket για **{choice}**.\nΓράψε το μήνυμά σου εδώ.")
+        await channel.send(f"{user.mention} άνοιξες ticket για **{choice}**.")
 
         await interaction.response.send_message(
             f"✅ Το ticket σου δημιουργήθηκε στην κατηγορία **{choice}**!",
@@ -96,20 +110,14 @@ class TicketSelect(View):
         )
 
 
-# -----------------------------
-# PANEL COMMAND
-# -----------------------------
 @bot.command()
 async def panel(ctx):
-    await ctx.send(
-        "🎫 **Ticket Panel**\nΕπίλεξε από το menu για να ανοίξεις ticket.",
-        view=TicketSelect()
-    )
+    embed = discord.Embed(description=PANEL_TEXT)
+    embed.set_image(url=BANNER_URL)
+
+    await ctx.send(embed=embed, view=TicketPanel())
 
 
-# -----------------------------
-# CLOSE COMMAND
-# -----------------------------
 @bot.command()
 async def close(ctx):
     if "ticket-" not in ctx.channel.name:
@@ -118,7 +126,7 @@ async def close(ctx):
 
     await ctx.send("🔒 Το ticket θα κλείσει σε 3 δευτερόλεπτα...")
     await ctx.channel.delete()
-    
+   
 # =========================
 # RUN BOT
 # =========================
