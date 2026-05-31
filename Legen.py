@@ -90,7 +90,7 @@ async def ticket(ctx):
         embed=embed,
         view=TicketView()
     )
-
+    
 # =========================
 # RUN BOT
 # =========================
