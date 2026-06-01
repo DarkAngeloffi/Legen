@@ -31,8 +31,6 @@ STAFF_ROLE_NAME = "Support"
 
 BANNER_URL = "https://imgur.com/a/1ZVby8N"
 
-# ---------------- CLOSE BUTTON ----------------
-
 class CloseButton(Button):
     def __init__(self):
         super().__init__(
