@@ -29,9 +29,12 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 TICKET_CATEGORY_NAME = "TICKETS"
 STAFF_ROLE_NAME = "Support"
 
+# Βάλε το banner σου εδώ
 BANNER_URL = "https://imgur.com/a/1ZVby8N"
 
-class CloseButton(Button):
+# ---------------- CLOSE BUTTON ----------------
+
+class CloseTicket(Button):
     def __init__(self):
         super().__init__(
             label="Close Ticket",
@@ -50,13 +53,12 @@ class CloseButton(Button):
         await interaction.channel.delete()
 
 
-# ---------------- TICKET CONTROLS ----------------
+# ---------------- TICKET VIEW ----------------
 
-class TicketControls(View):
+class TicketButtons(View):
     def __init__(self):
         super().__init__(timeout=None)
-
-        self.add_item(CloseButton())
+        self.add_item(CloseTicket())
 
 
 # ---------------- DROPDOWN ----------------
@@ -69,7 +71,7 @@ class TicketDropdown(Select):
             discord.SelectOption(
                 label="Support",
                 emoji="🎫",
-                description="General support ticket"
+                description="General support"
             ),
 
             discord.SelectOption(
@@ -87,7 +89,7 @@ class TicketDropdown(Select):
             discord.SelectOption(
                 label="Bug Report",
                 emoji="🐞",
-                description="Report a server bug"
+                description="Report a bug"
             ),
 
             discord.SelectOption(
@@ -100,8 +102,6 @@ class TicketDropdown(Select):
 
         super().__init__(
             placeholder="Choose a category",
-            min_values=1,
-            max_values=1,
             options=options
         )
 
@@ -110,18 +110,26 @@ class TicketDropdown(Select):
         guild = interaction.guild
         user = interaction.user
 
+        prefixes = {
+            "Support": "support",
+            "Report Player": "report",
+            "Donation Support": "donation",
+            "Bug Report": "bug",
+            "Other": "other"
+        }
+
+        ticket_name = f"{prefixes[self.values[0]]}-{user.name.lower()}"
+
         existing = discord.utils.get(
-            guild.channels,
-            name=f"ticket-{user.id}"
+            guild.text_channels,
+            name=ticket_name
         )
 
         if existing:
-
             await interaction.response.send_message(
                 f"❌ You already have an open ticket: {existing.mention}",
                 ephemeral=True
             )
-
             return
 
         category = discord.utils.get(
@@ -130,10 +138,11 @@ class TicketDropdown(Select):
         )
 
         if category is None:
-            category = await guild.create_category("TICKETS")
+            category = await guild.create_category(
+                "TICKETS"
+            )
 
         overwrites = {
-
             guild.default_role:
                 discord.PermissionOverwrite(
                     view_channel=False
@@ -145,31 +154,30 @@ class TicketDropdown(Select):
                     send_messages=True,
                     read_message_history=True
                 )
-
         }
 
         channel = await guild.create_text_channel(
-            f"ticket-{user.id}",
+            ticket_name,
             category=category,
             overwrites=overwrites
         )
 
-        ticket_embed = discord.Embed(
-            title="🎫 Ticket Created",
+        embed = discord.Embed(
+            title="🎫 Ticket Support",
             description=(
                 f"**Category:** {self.values[0]}\n\n"
-                "Please explain your issue.\n"
-                "A staff member will assist you shortly."
+                "Please describe your issue.\n"
+                "A staff member will help you shortly."
             ),
             color=0x2b2d31
         )
 
-        ticket_embed.set_image(url=BANNER_URL)
+        embed.set_image(url=BANNER_URL)
 
         await channel.send(
             content=user.mention,
-            embed=ticket_embed,
-            view=TicketControls()
+            embed=embed,
+            view=TicketButtons()
         )
 
         await interaction.response.send_message(
@@ -178,12 +186,9 @@ class TicketDropdown(Select):
         )
 
 
-# ---------------- PANEL VIEW ----------------
-
-class TicketView(View):
+class TicketPanel(View):
     def __init__(self):
         super().__init__(timeout=None)
-
         self.add_item(TicketDropdown())
 
 
@@ -203,21 +208,19 @@ async def ticket(ctx):
         color=0x2b2d31
     )
 
+    # Banner πάνω από το κείμενο
     embed.set_image(url=BANNER_URL)
 
     await ctx.send(
         embed=embed,
-        view=TicketView()
+        view=TicketPanel()
     )
 
-
-# ---------------- READY ----------------
 
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
 
-    
 # =========================
 # RUN BOT
 # =========================
