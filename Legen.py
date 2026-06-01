@@ -161,14 +161,13 @@ async def ticketsetup(ctx):
     # Banner (εσύ βάζεις όποια εικόνα θέλεις)
     file = discord.File("banner.png", filename="banner.png")
 
-    embed.set_image(url="attachment://banner.png")
+    embed.set_image(url="https://imgur.com/a/1ZVby8N")
 
     await ctx.send(
         embed=embed,
         file=file,
         view=TicketSelectView()
     )
-
 
 # =========================
 # RUN BOT
