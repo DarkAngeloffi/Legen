@@ -29,197 +29,146 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 TICKET_CATEGORY_NAME = "TICKETS"
 STAFF_ROLE_NAME = "Support"
 
-# Βάλε το banner σου εδώ
-BANNER_URL = "https://imgur.com/a/1ZVby8N"
+TICKET_CATEGORY_ID = 1411103018115403776
+STAFF_ROLE_ID = 1366509730583023768
 
-# ---------------- CLOSE BUTTON ----------------
-
-class CloseTicket(Button):
+# ======================================================
+#   SELECT MENU (Container V2)
+# ======================================================
+class TicketSelect(discord.ui.Select):
     def __init__(self):
-        super().__init__(
-            label="Close Ticket",
-            emoji="🔒",
-            style=discord.ButtonStyle.danger
-        )
-
-    async def callback(self, interaction: discord.Interaction):
-
-        await interaction.response.send_message(
-            "🔒 This ticket will be closed in 5 seconds..."
-        )
-
-        await asyncio.sleep(5)
-
-        await interaction.channel.delete()
-
-
-# ---------------- TICKET VIEW ----------------
-
-class TicketButtons(View):
-    def __init__(self):
-        super().__init__(timeout=None)
-        self.add_item(CloseTicket())
-
-
-# ---------------- DROPDOWN ----------------
-
-class TicketDropdown(Select):
-    def __init__(self):
-
         options = [
-
-            discord.SelectOption(
-                label="Support",
-                emoji="🎫",
-                description="General support"
-            ),
-
-            discord.SelectOption(
-                label="Report Player",
-                emoji="🚨",
-                description="Report a player"
-            ),
-
-            discord.SelectOption(
-                label="Donation Support",
-                emoji="💎",
-                description="Donation issues"
-            ),
-
-            discord.SelectOption(
-                label="Bug Report",
-                emoji="🐞",
-                description="Report a bug"
-            ),
-
-            discord.SelectOption(
-                label="Other",
-                emoji="❓",
-                description="Other requests"
-            )
-
+            discord.SelectOption(label="Support", emoji="🛠️", description="Βοήθεια / Υποστήριξη"),
+            discord.SelectOption(label="Report", emoji="⚠️", description="Αναφορά χρήστη / bug"),
+            discord.SelectOption(label="Appeal", emoji="📨", description="Αίτηση / Unban appeal"),
         ]
 
         super().__init__(
-            placeholder="Choose a category",
-            options=options
+            placeholder="Επίλεξε κατηγορία ticket...",
+            min_values=1,
+            max_values=1,
+            options=options,
+            custom_id="ticket_select_v2"
         )
 
     async def callback(self, interaction: discord.Interaction):
-
         guild = interaction.guild
         user = interaction.user
-
-        prefixes = {
-            "Support": "support",
-            "Report Player": "report",
-            "Donation Support": "donation",
-            "Bug Report": "bug",
-            "Other": "other"
-        }
-
-        ticket_name = f"{prefixes[self.values[0]]}-{user.name.lower()}"
-
-        existing = discord.utils.get(
-            guild.text_channels,
-            name=ticket_name
-        )
-
-        if existing:
-            await interaction.response.send_message(
-                f"❌ You already have an open ticket: {existing.mention}",
-                ephemeral=True
-            )
-            return
-
-        category = discord.utils.get(
-            guild.categories,
-            name="TICKETS"
-        )
+        category = guild.get_channel(TICKET_CATEGORY_ID)
 
         if category is None:
-            category = await guild.create_category(
-                "TICKETS"
+            return await interaction.response.send_message(
+                "❌ Δεν βρέθηκε η κατηγορία ticket.", ephemeral=True
+            )
+
+        # Έλεγχος αν έχει ήδη ticket
+        existing = discord.utils.get(guild.text_channels, name=f"ticket-{user.id}")
+        if existing:
+            return await interaction.response.send_message(
+                f"Έχεις ήδη ticket: {existing.mention}", ephemeral=True
             )
 
         overwrites = {
-            guild.default_role:
-                discord.PermissionOverwrite(
-                    view_channel=False
-                ),
-
-            user:
-                discord.PermissionOverwrite(
-                    view_channel=True,
-                    send_messages=True,
-                    read_message_history=True
-                )
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            guild.get_role(STAFF_ROLE_ID): discord.PermissionOverwrite(
+                view_channel=True, send_messages=True, read_message_history=True
+            ),
+            user: discord.PermissionOverwrite(
+                view_channel=True, send_messages=True, read_message_history=True
+            )
         }
 
         channel = await guild.create_text_channel(
-            ticket_name,
+            name=f"ticket-{user.id}",
             category=category,
-            overwrites=overwrites
+            overwrites=overwrites,
+            reason=f"Ticket από {user}"
         )
 
         embed = discord.Embed(
-            title="🎫 Ticket Support",
-            description=(
-                f"**Category:** {self.values[0]}\n\n"
-                "Please describe your issue.\n"
-                "A staff member will help you shortly."
-            ),
-            color=0x2b2d31
+            title=f"🎫 Ticket: {self.values[0]}",
+            description="Πες μας το θέμα σου. Όταν τελειώσεις, πάτα **Κλείσιμο Ticket**.",
+            color=discord.Color.green()
         )
 
-        embed.set_image(url=BANNER_URL)
-
         await channel.send(
-            content=user.mention,
+            content=f"{user.mention} <@&{STAFF_ROLE_ID}>",
             embed=embed,
-            view=TicketButtons()
+            view=TicketCloseView()
         )
 
         await interaction.response.send_message(
-            f"✅ Ticket created: {channel.mention}",
+            f"✅ Το ticket σου δημιουργήθηκε: {channel.mention}",
             ephemeral=True
         )
 
 
-class TicketPanel(View):
+# ======================================================
+#   VIEW ΓΙΑ ΤΟ SELECT MENU
+# ======================================================
+class TicketSelectView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        self.add_item(TicketDropdown())
+        self.add_item(TicketSelect())
 
 
-# ---------------- COMMAND ----------------
+# ======================================================
+#   VIEW ΓΙΑ ΚΛΕΙΣΙΜΟ TICKET
+# ======================================================
+class TicketCloseView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
 
+    @discord.ui.button(
+        label="🔒 Κλείσιμο Ticket",
+        style=discord.ButtonStyle.danger,
+        custom_id="close_ticket_btn_v2"
+    )
+    async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+        channel = interaction.channel
+
+        if not channel.name.startswith("ticket-"):
+            return await interaction.response.send_message(
+                "❌ Αυτό δεν είναι ticket.", ephemeral=True
+            )
+
+        await interaction.response.send_message(
+            "🔒 Το ticket θα κλείσει σε 5 δευτερόλεπτα...", ephemeral=True
+        )
+
+        await discord.utils.sleep_until(
+            discord.utils.utcnow() + discord.utils.timedelta(seconds=5)
+        )
+
+        await channel.delete(reason=f"Closed by {interaction.user}")
+
+
+# ======================================================
+#   COMMAND: !ticketsetup (Container V2)
+# ======================================================
 @bot.command()
-@commands.has_permissions(administrator=True)
-async def ticket(ctx):
-
+async def ticketsetup(ctx):
     embed = discord.Embed(
-        title="Welcome to 420 Roleplay",
+        title="🎫 Ticket Panel (Container V2)",
         description=(
-            "Για την άμεση εξυπηρέτηση σας μπορείτε να "
-            "ανοίξετε ένα ticket ώστε να μιλήσετε με "
-            "κάποιον ανώτερο και να λύσετε το πρόβλημα σας."
+            "**Καλωσήρθες στο AP-style Ticket System!**\n"
+            "Επίλεξε κατηγορία από το menu παρακάτω."
         ),
-        color=0x2b2d31
+        color=discord.Color.blurple()
     )
 
-    # Banner πάνω από το κείμενο
-    embed.set_image(url=BANNER_URL)
+    # Banner (εσύ βάζεις όποια εικόνα θέλεις)
+    file = discord.File("banner.png", filename="banner.png")
+
+    embed.set_image(url="attachment://banner.png")
 
     await ctx.send(
         embed=embed,
-        view=TicketPanel()
+        file=file,
+        view=TicketSelectView()
     )
 
-
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user}")
 
 # =========================
 # RUN BOT
