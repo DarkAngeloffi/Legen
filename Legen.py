@@ -32,9 +32,6 @@ STAFF_ROLE_NAME = "Support"
 TICKET_CATEGORY_ID = 1411103018115403776
 STAFF_ROLE_ID = 1366509730583023768
 
-# ======================================================
-#   SELECT MENU (Container V2)
-# ======================================================
 class TicketSelect(discord.ui.Select):
     def __init__(self):
         options = [
